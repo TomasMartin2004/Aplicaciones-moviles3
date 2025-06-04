@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { authStyles } from './styles/authStyles';
 import { handleLogin } from './utils/auth';
 
@@ -13,12 +13,6 @@ export default function Login() {
 
   return (
     <View style={authStyles.container}>
-      <Stack.Screen 
-        options={{
-          title: 'Iniciar Sesión',
-          headerShown: false,
-        }}
-      />
       <View style={authStyles.formContainer}>
         <Text style={authStyles.title}>¡Bienvenido de nuevo!</Text>
         <Text style={authStyles.subtitle}>Inicia sesión para continuar</Text>
@@ -75,4 +69,4 @@ export default function Login() {
       </View>
     </View>
   );
-} 
+}

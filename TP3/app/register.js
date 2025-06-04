@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { authStyles } from './styles/authStyles';
 import { handleRegister } from './utils/auth';
 
@@ -14,12 +14,6 @@ export default function Register() {
 
   return (
     <View style={authStyles.container}>
-      <Stack.Screen 
-        options={{
-          title: 'Registro',
-          headerShown: false,
-        }}
-      />
       <View style={authStyles.formContainer}>
         <Text style={authStyles.title}>Crear Cuenta</Text>
         <Text style={authStyles.subtitle}>Regístrate para comenzar</Text>
@@ -103,4 +97,4 @@ export default function Register() {
       </View>
     </View>
   );
-} 
+}
