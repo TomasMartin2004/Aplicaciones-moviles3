@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EntryCard({ id, mood, note, date, image, onEdit, onDelete }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -81,10 +81,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     marginVertical: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    // Sombra multiplataforma
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#E5E9F0',
     minHeight: 70,
@@ -131,10 +139,18 @@ const styles = StyleSheet.create({
     padding: 22,
     width: '90%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    elevation: 3,
+    // Sombra multiplataforma
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.07,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   modalMood: {
     fontSize: 26,

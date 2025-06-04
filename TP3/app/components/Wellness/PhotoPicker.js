@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function PhotoPicker({ image, onPick }) {
   return (
@@ -9,7 +9,7 @@ export default function PhotoPicker({ image, onPick }) {
         <Image source={{ uri: image }} style={styles.image} />
       ) : (
         <TouchableOpacity style={styles.button} onPress={onPick}>
-          <Ionicons name="camera" size={32} color="#4a90e2" />
+          <Ionicons name="camera" size={32} color="#5E81AC" />
           <Text style={styles.text}>Agregar Foto</Text>
         </TouchableOpacity>
       )}
@@ -24,13 +24,13 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
-    backgroundColor: '#eaf6ff',
+    backgroundColor: '#E5E9F0',
     padding: 16,
     borderRadius: 12,
   },
   text: {
     marginTop: 8,
-    color: '#4a90e2',
+    color: '#5E81AC',
     fontWeight: 'bold',
   },
   image: {

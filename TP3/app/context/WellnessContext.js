@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import { db, auth } from '../../firebaseConfig'; // Assuming db and auth are exported from firebaseConfig
-import { collection, addDoc, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { addDoc, collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth, db } from '../../firebaseConfig'; // Assuming db and auth are exported from firebaseConfig
 
 const WellnessContext = createContext();
 
@@ -143,20 +142,28 @@ export function WellnessProvider({ children }) {
   const fetchQuote = async () => {
     setLoadingQuote(true);
     try {
-      // Reverting to the original quotable.io API
       let url = 'https://api.quotable.io/random';
-      const res = await fetch(url);
+      // Timeout manual usando Promise.race
+      const fetchWithTimeout = (resource, options = {}) => {
+        const { timeout = 3000 } = options;
+        return Promise.race([
+          fetch(resource),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+        ]);
+      };
+      let res = await fetchWithTimeout(url, { timeout: 3000 });
       if (!res.ok) throw new Error('No se pudo obtener la frase');
       const data = await res.json();
-      // The API returns an object with content and author fields
       if (data && data.content && data.author) {
         setQuote(data.content + ' - ' + data.author);
       } else {
         throw new Error('Respuesta de API inesperada');
       }
     } catch (error) {
-      console.error('Error fetching quote:', error);
-      // Si falla, elige una frase local aleatoria
+      // Solo mostrar en consola si NO es error de certificado
+      if (!(error instanceof TypeError && error.message && error.message.includes('Failed to fetch'))) {
+        console.error('Error fetching quote:', error);
+      }
       const random = frasesLocales[Math.floor(Math.random() * frasesLocales.length)];
       setQuote(random);
     } finally {
