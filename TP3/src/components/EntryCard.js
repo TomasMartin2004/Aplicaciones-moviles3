@@ -92,6 +92,9 @@ const styles = StyleSheet.create({
       android: {
         elevation: 2,
       },
+      web: {
+        boxShadow: '0px 2px 6px rgba(0,0,0,0.05)',
+      },
     }),
     borderWidth: 1,
     borderColor: '#E5E9F0',
@@ -149,6 +152,9 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 3,
+      },
+      web: { 
+        boxShadow: '0px 4px 10px rgba(0,0,0,0.07)',
       },
     }),
   },

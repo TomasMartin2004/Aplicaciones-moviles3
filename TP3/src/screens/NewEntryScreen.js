@@ -5,10 +5,10 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import uuid from 'react-native-uuid'; // Make sure you have installed react-native-uuid: npm install react-native-uuid or yarn add react-native-uuid
-import { storage } from '../../firebaseConfig'; // Assuming storage is exported from firebaseConfig
-import CustomInput from '../components/Wellness/CustomInput';
-import MoodSelector from '../components/Wellness/MoodSelector';
-import PhotoPicker from '../components/Wellness/PhotoPicker';
+import { storage } from '../../firebaseConfig';
+import CustomInput from '../components/CustomInput';
+import MoodSelector from '../components/MoodSelector';
+import PhotoPicker from '../components/PhotoPicker';
 import { useWellness } from '../context/WellnessContext';
 
 export default function NewEntryScreen() {

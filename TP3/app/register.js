@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { authStyles } from './styles/authStyles';
-import { handleRegister } from './utils/auth';
+import { authStyles } from '../src/styles/authStyles';
+import { handleRegister } from '../src/utils/auth';
 
 export default function Register() {
   const [email, setEmail] = useState('');

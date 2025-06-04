@@ -1,6 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
-// Nord palette colors
 const colors = {
   background: '#ECEFF4',
   input: '#E5E9F0',
@@ -68,36 +67,55 @@ export const authStyles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    backgroundColor: colors.accent,
-    height: 55,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    shadowColor: colors.accent,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    backgroundColor: colors.accent, 
+    height: 55, 
+    borderRadius: 12, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 24, 
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.accent, 
+        shadowOffset: { 
+          width: 0, 
+          height: 4, 
+        },
+        shadowOpacity: 0.3, 
+        shadowRadius: 4, 
+      },
+      android: {
+        elevation: 4, 
+      },
+      web: {
+        boxShadow: `0px 4px 4px rgba(94, 129, 172, 0.3)`,
+      }
+    }),
   },
   buttonDisabled: {
-    backgroundColor: colors.accentLight,
-    shadowOpacity: 0.1,
+    backgroundColor: colors.accentLight, 
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 0.1, 
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: `0px 4px 4px rgba(129, 161, 193, 0.1)`, 
+      }
+    }),
   },
   buttonText: {
-    color: colors.background,
-    fontSize: 18,
-    fontWeight: '600',
+    color: colors.background, 
+    fontSize: 18, 
+    fontWeight: '600', 
   },
   linkButton: {
-    marginTop: 24,
-    alignItems: 'center',
+    marginTop: 24, 
+    alignItems: 'center', 
   },
   linkText: {
-    color: colors.accent,
-    fontSize: 16,
+    color: colors.accent, 
+    fontSize: 16, 
   },
-}); 
+});

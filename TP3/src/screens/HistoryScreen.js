@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import EntryCard from '../components/Wellness/EntryCard';
+import EntryCard from '../components/EntryCard';
 import { useWellness } from '../context/WellnessContext';
 
 export default function HistoryScreen() {

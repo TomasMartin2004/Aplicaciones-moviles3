@@ -1,5 +1,5 @@
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { Alert } from 'react-native';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 
 export const validateLoginForm = (email, password, setErrors) => {
@@ -134,4 +134,4 @@ export const handleRegister = async (email, password, confirmPassword, setErrors
   } finally {
     setLoading(false);
   }
-}; 
+};

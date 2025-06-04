@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { WellnessProvider } from './context/WellnessContext';
+import { WellnessProvider } from '../src/context/WellnessContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
