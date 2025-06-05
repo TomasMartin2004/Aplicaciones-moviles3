@@ -29,7 +29,7 @@ La tem√°tica central es el **bienestar emocional y el autocuidado**. La app est√
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd TP3/Aplicaciones-moviles3/TP3
+cd Aplicaciones-moviles3/TP3
 ```
 
 ### 2. Instalar dependencias del frontend
