@@ -1,56 +1,127 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 import { useWellness } from '../context/WellnessContext';
 
 export default function HomeScreen() {
   const { quote, fetchQuote, theme, toggleTheme, loadingQuote } = useWellness();
+  const { logout } = useAuth();
   const router = useRouter();
-  const colorScheme = useColorScheme();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const lightThemeColors = {
+    accent: '#5E81AC',
+    logoutIcon: '#BF616A',
+  };
+
+  const darkThemeColors = {
+    accent: '#88C0D0',
+    logoutIcon: '#FF8C8C',
+  };
+
+  const isDark = theme === 'dark';
+  const currentColorScheme = isDark ? darkThemeColors : lightThemeColors;
 
   return (
-    <View style={[styles.container, theme === 'dark' && styles.darkBg]}>
-      <TouchableOpacity style={styles.themeBtn} onPress={toggleTheme}>
-        <Ionicons name={theme === 'dark' ? 'sunny' : 'moon'} size={24} color="#5E81AC" />
-      </TouchableOpacity>
-      <View style={{alignItems: 'center', marginBottom: 10}}>
-        <Ionicons name="book-outline" size={32} color="#5E81AC" style={{marginBottom: 4}} />
-        <Text style={[styles.title, theme === 'dark' && styles.darkText]}>¡Bienvenido a tu Diario de Bienestar!</Text>
+    <View style={[styles.baseContainer, isDark ? styles.darkBg : styles.lightBg]}>
+      <View style={styles.headerButtonContainer}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={28} color={currentColorScheme.logoutIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.themeToggleButton} onPress={toggleTheme}>
+          <Ionicons 
+            name={isDark ? 'sunny' : 'moon'} 
+            size={28} 
+            color={currentColorScheme.accent} 
+          />
+        </TouchableOpacity>
       </View>
-      <Text style={[styles.quote, theme === 'dark' && styles.darkText]}>{quote}</Text>
-      <TouchableOpacity style={styles.refreshBtn} onPress={fetchQuote} disabled={loadingQuote}>
-        <Ionicons name="refresh" size={20} color="#5E81AC" />
+
+      <View style={styles.contentContainer}>
+        <View style={styles.titleContainer}>
+          <Ionicons name="book-outline" size={32} color={isDark ? '#D8DEE9' : "#5E81AC"} style={styles.titleIcon} />
+          <Text style={[styles.titleText, isDark && styles.darkText]}>¡Bienvenido a tu Diario de Bienestar!</Text>
+        </View>
+        
         {loadingQuote ? (
-          <ActivityIndicator size="small" color="#5E81AC" style={{ marginLeft: 8 }} />
+          <ActivityIndicator size="small" color={isDark ? '#D8DEE9' : "#5E81AC"} style={styles.quoteLoading}/>
         ) : (
-          <Text style={styles.refreshText}>Otra frase</Text>
+          <Text style={[styles.quoteText, isDark && styles.darkTextQuote]}>{quote || "Cargando frase..."}</Text>
         )}
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/new-entry')}>
-        <Ionicons name="add-circle-outline" size={20} color="#fff" style={{marginRight: 6}} />
-        <Text style={styles.buttonText}>Registrar nuevo estado</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonOutline} onPress={() => router.push('/history')}>
-        <Ionicons name="time-outline" size={18} color="#5E81AC" style={{marginRight: 4}} />
-        <Text style={styles.buttonOutlineText}>Ver historial</Text>
-      </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.refreshButton} onPress={fetchQuote} disabled={loadingQuote}>
+          <Ionicons name="refresh" size={20} color={isDark ? darkThemeColors.accent : lightThemeColors.accent} />
+          <Text style={[styles.refreshButtonText, isDark && {color: darkThemeColors.accent}]}>Otra frase</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+            style={[styles.mainButton, {backgroundColor: currentColorScheme.accent}]} 
+            onPress={() => router.push('/(tabs)/new-entry')}
+        >
+          <Ionicons name="add-circle-outline" size={20} color={isDark ? darkThemeColors.buttonText : '#FFFFFF'} style={styles.mainButtonIcon} />
+          <Text style={[styles.mainButtonText, {color: isDark ? darkThemeColors.buttonText : '#FFFFFF'}]}>Registrar nuevo estado</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+            style={[styles.outlineButton, {borderColor: currentColorScheme.accent}]} 
+            onPress={() => router.push('/(tabs)/history')}
+        >
+          <Ionicons name="time-outline" size={18} color={currentColorScheme.accent} style={styles.outlineButtonIcon} />
+          <Text style={[styles.outlineButtonText, {color: currentColorScheme.accent}]}>Ver historial</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  baseContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
+    paddingTop: 50, 
+  },
+  lightBg: {
     backgroundColor: '#ECEFF4',
   },
   darkBg: {
     backgroundColor: '#232936',
   },
-  title: {
+  headerButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    width: '100%',
+    position: 'absolute',
+    top: 50, 
+    right: 0, 
+    left: 0,
+    zIndex: 1,
+  },
+  themeToggleButton: {
+    padding: 10,
+  },
+  logoutButton: {
+    padding: 10,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 60, 
+  },
+  titleContainer: {
+    alignItems: 'center', 
+    marginBottom: 10,
+  },
+  titleIcon: {
+    marginBottom: 4,
+  },
+  titleText: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -58,59 +129,66 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   darkText: {
-    color: '#fff',
+    color: '#ECEFF4',
   },
-  quote: {
+  quoteText: {
     fontStyle: 'italic',
     fontSize: 16,
     marginBottom: 24,
-    color: '#5E81AC',
+    color: '#4C566A',
     textAlign: 'center',
+    minHeight: 50, 
   },
-  refreshBtn: {
+  darkTextQuote: {
+    color: '#D8DEE9',
+  },
+  quoteLoading: {
+    marginVertical: 15, 
+    minHeight: 50,
+  },
+  refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 32,
+    padding: 8,
   },
-  refreshText: {
+  refreshButtonText: {
     marginLeft: 6,
     color: '#5E81AC',
     fontWeight: 'bold',
   },
-  button: {
-    backgroundColor: '#5E81AC',
+  mainButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
     marginBottom: 16,
     width: '100%',
   },
-  buttonText: {
-    color: '#fff',
+  mainButtonIcon: {
+    marginRight: 6,
+  },
+  mainButtonText: {
     fontWeight: 'bold',
     fontSize: 16,
   },
-  buttonOutline: {
-    borderColor: '#5E81AC',
+  outlineButton: {
     borderWidth: 2,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
     width: '100%',
   },
-  buttonOutlineText: {
-    color: '#5E81AC',
+  outlineButtonIcon: {
+    marginRight: 4,
+  },
+  outlineButtonText: {
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  themeBtn: {
-    position: 'absolute',
-    top: 32,
-    right: 24,
-    zIndex: 10,
-  },
+  }
 });

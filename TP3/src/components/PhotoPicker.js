@@ -6,7 +6,11 @@ export default function PhotoPicker({ image, onPick }) {
   return (
     <View style={styles.container}>
       {image ? (
-        <Image source={{ uri: image }} style={styles.image} />
+        <Image 
+          source={{ uri: image }} 
+          style={styles.image} 
+          resizeMode="cover" 
+        />
       ) : (
         <TouchableOpacity style={styles.button} onPress={onPick}>
           <Ionicons name="camera" size={32} color="#5E81AC" />
@@ -37,6 +41,5 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 16,
-    resizeMode: 'cover',
   },
 });

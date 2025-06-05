@@ -1,44 +1,84 @@
+import { BlurView } from 'expo-blur';
 import React, { useState } from 'react';
-import { Alert, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function EntryCard({ id, mood, note, date, image, onEdit, onDelete }) {
+const formatDate = (isoString) => {
+  if (!isoString) return 'Fecha desconocida';
+  try {
+    const dateObj = new Date(isoString);
+    if (isNaN(dateObj.getTime())) {
+      return 'Fecha inválida';
+    }
+    return `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  } catch (e) {
+    return 'Error en fecha';
+  }
+};
+
+export default function EntryCard({ id, mood, note, createdAt, image, onEdit, onDelete }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedNote, setEditedNote] = useState(note);
 
+  const handleOpenModal = () => {
+    setEditedNote(note);
+    setEditMode(false);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setEditMode(false);
+  };
+
   const handleSave = () => {
-    onEdit && onEdit(id, editedNote);
+    if (onEdit) {
+      onEdit(id, editedNote);
+    }
     setEditMode(false);
     setModalVisible(false);
   };
 
-  const handleDelete = () => {
-    Alert.alert('Eliminar entrada', '¿Estás seguro de que deseas eliminar esta entrada?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => onDelete && onDelete(id) },
-    ]);
+  const handleDeletePress = () => {
+    if (onDelete) {
+      onDelete(id);
+    }
+    setModalVisible(false);
   };
 
   return (
     <>
-      <TouchableOpacity style={styles.card} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
         <View style={styles.header}>
           <Text style={styles.mood}>{mood}</Text>
-          <Text style={styles.date}>{date}</Text>
+          <Text style={styles.date}>{formatDate(createdAt)}</Text>
         </View>
         <Text style={styles.note} numberOfLines={2} ellipsizeMode="tail">{note}</Text>
-        {image ? <Image source={{ uri: image }} style={styles.image} /> : null}
+        {image && (
+          <Image
+            source={{ uri: image }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        )}
       </TouchableOpacity>
+      
       <Modal
         visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={handleCloseModal}
       >
-        <View style={styles.modalBg}>
+        <View style={styles.modalOuterContainer}>
+          <BlurView 
+            intensity={Platform.OS === 'ios' ? 60 : 30} 
+            tint="dark" 
+            style={styles.bleedFill} 
+          />
+          <View style={[styles.bleedFill, styles.modalBackdropCustom]} />
           <View style={styles.modalContent}>
             <Text style={styles.modalMood}>{mood}</Text>
-            <Text style={styles.modalDate}>{date}</Text>
+            <Text style={styles.modalDate}>{formatDate(createdAt)}</Text>
             {editMode ? (
               <TextInput
                 style={styles.editInput}
@@ -50,24 +90,30 @@ export default function EntryCard({ id, mood, note, date, image, onEdit, onDelet
             ) : (
               <Text style={styles.modalNote}>{note}</Text>
             )}
-            {image ? <Image source={{ uri: image }} style={styles.modalImage} /> : null}
+            {image && (
+              <Image
+                source={{ uri: image }}
+                style={styles.modalImage}
+                resizeMode="cover"
+              />
+            )}
             <View style={styles.modalActions}>
               {editMode ? (
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                  <Text style={styles.saveBtnText}>Guardar</Text>
+                  <Text style={styles.btnText}>Guardar</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={styles.editBtn} onPress={() => setEditMode(true)}>
-                  <Text style={styles.editBtnText}>Editar</Text>
+                  <Text style={styles.btnText}>Editar</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-                <Text style={styles.deleteBtnText}>Eliminar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => { setModalVisible(false); setEditMode(false); }}>
-                <Text style={styles.closeBtnText}>Cerrar</Text>
+              <TouchableOpacity style={styles.deleteBtn} onPress={handleDeletePress}>
+                <Text style={styles.btnText}>Eliminar</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity style={styles.closeBtn} onPress={handleCloseModal}>
+              <Text style={styles.closeBtnText}>Cerrar</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -76,12 +122,20 @@ export default function EntryCard({ id, mood, note, date, image, onEdit, onDelet
 }
 
 const styles = StyleSheet.create({
+  bleedFill: { 
+    position: 'absolute',
+    top: -2, 
+    left: -2,
+    bottom: -2,
+    right: -2,
+    width: '100.5%', 
+    height: '100.5%',
+  },
   card: {
     backgroundColor: '#ECEFF4',
     borderRadius: 16,
     padding: 14,
     marginVertical: 8,
-    // Sombra multiplataforma
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -130,11 +184,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     backgroundColor: '#E5E9F0',
   },
-  modalBg: {
+  modalOuterContainer: {
     flex: 1,
-    backgroundColor: 'rgba(44, 62, 80, 0.18)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalBackdropCustom: { 
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
     backgroundColor: '#F8FAFC',
@@ -142,7 +198,6 @@ const styles = StyleSheet.create({
     padding: 22,
     width: '90%',
     alignItems: 'center',
-    // Sombra multiplataforma
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -151,12 +206,13 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
       },
       android: {
-        elevation: 3,
+        elevation: 8,
       },
-      web: { 
+      web: {
         boxShadow: '0px 4px 10px rgba(0,0,0,0.07)',
       },
     }),
+    zIndex: 1, 
   },
   modalMood: {
     fontSize: 26,
@@ -177,6 +233,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '400',
     letterSpacing: 0.1,
+    maxHeight: 150,
   },
   modalImage: {
     width: 160,
@@ -187,52 +244,48 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     width: '100%',
     marginTop: 8,
-    gap: 6,
+    marginBottom: 12,
+    gap: 10,
   },
   editBtn: {
     backgroundColor: '#81A1C1',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
-    marginRight: 0,
-  },
-  editBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
+    flex: 1,
+    alignItems: 'center',
   },
   saveBtn: {
     backgroundColor: '#5E81AC',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
-    marginRight: 0,
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
+    flex: 1,
+    alignItems: 'center',
   },
   deleteBtn: {
     backgroundColor: '#BF616A',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
-    marginRight: 0,
+    flex: 1,
+    alignItems: 'center',
   },
-  deleteBtnText: {
+  btnText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 15,
   },
   closeBtn: {
     backgroundColor: '#E5E9F0',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    alignSelf: 'stretch',
+    alignItems: 'center',
   },
   closeBtnText: {
     color: '#2E3440',
@@ -245,11 +298,14 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     color: '#2E3440',
-    width: 220,
+    width: '100%',
     minHeight: 80,
+    maxHeight: 150,
     marginBottom: 10,
     textAlignVertical: 'top',
     fontWeight: '400',
     letterSpacing: 0.1,
+    borderWidth: 1,
+    borderColor: '#D8DEE9'
   },
 });

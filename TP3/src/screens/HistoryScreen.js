@@ -1,37 +1,87 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import EntryCard from '../components/EntryCard';
 import { useWellness } from '../context/WellnessContext';
 
 export default function HistoryScreen() {
-  const { entries, theme, loadingEntries, editEntry, deleteEntry } = useWellness();
+  const { entries, theme, loadingEntries, editEntry, removeEntry, fetchEntries } = useWellness();
   const router = useRouter();
 
-  return (
-    <View style={[styles.container, theme === 'dark' && styles.darkBg]}>
-      <View style={{alignItems: 'center', marginBottom: 10}}>
-        <Ionicons name="time-outline" size={32} color="#5E81AC" style={{marginBottom: 4}} />
-        <Text style={[styles.title, theme === 'dark' && styles.darkText]}>Historial de Bienestar</Text>
+  const isDark = theme === 'dark';
+
+  const colors = {
+    background: isDark ? '#232936' : '#ECEFF4',
+    text: isDark ? '#ECEFF4' : '#2E3440',
+    accent: isDark ? '#88C0D0' : '#5E81AC',
+    card: isDark ? '#3B4252' : '#fff',
+    secondaryText: isDark ? '#D8DEE9' : '#7B8794',
+    icon: isDark ? '#D8DEE9' : '#5E81AC',
+    buttonText: isDark ? undefined : '#FFFFFF', // Adjusted to match HomeScreen main button text logic
+  };
+
+  useEffect(() => {
+    fetchEntries();
+  }, []);
+
+  const renderEntryCard = ({ item }) => {
+    if (!item || typeof item.id === 'undefined') return null;
+    return (
+      <EntryCard
+        id={item.id}
+        mood={item.mood}
+        note={item.note}
+        createdAt={item.createdAt}
+        image={item.image}
+        onEdit={editEntry}
+        onDelete={removeEntry}
+      />
+    );
+  };
+
+  const getKeyExtractor = (item) => {
+    if (!item || typeof item.id === 'undefined') return Math.random().toString();
+    return item.id.toString();
+  };
+
+  if (loadingEntries && entries.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
-      {loadingEntries ? (
-        <ActivityIndicator size="large" color={theme === 'dark' ? '#fff' : '#5E81AC'} style={styles.loadingIndicator} />
-      ) : entries.length === 0 ? (
-        <Text style={[styles.empty, theme === 'dark' && styles.darkText]}>No hay registros aún.</Text>
-      ) : (
-        <FlatList
-          data={entries}
-          keyExtractor={item => item.id || item.date}
-          renderItem={({ item }) => (
-            <EntryCard {...item} onEdit={editEntry} onDelete={deleteEntry} />
-          )}
-          contentContainerStyle={{ paddingBottom: 32 }}
-        />
-      )}
-      <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-        <Ionicons name="arrow-back-outline" size={18} color="#fff" style={{marginRight: 4}} />
-        <Text style={styles.buttonText}>Volver</Text>
+    );
+  }
+
+  if (!loadingEntries && entries.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }, styles.centered]}>
+        <Text style={[styles.empty, { color: colors.secondaryText }]}>No hay registros aún.</Text>
+        <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent }]} onPress={() => router.back()}>
+          <Ionicons name="arrow-back-outline" size={18} color={colors.buttonText} style={{ marginRight: 4 }} />
+          <Text style={[styles.buttonText, { color: colors.buttonText }]}>Volver</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.headerContainer}>
+        <Ionicons name="time-outline" size={32} color={colors.icon} style={{ marginBottom: 4 }} />
+        <Text style={[styles.title, { color: colors.text }]}>Historial de Bienestar</Text>
+      </View>
+      <FlatList
+        data={entries}
+        renderItem={renderEntryCard}
+        keyExtractor={getKeyExtractor}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        ListFooterComponent={loadingEntries ? <ActivityIndicator size="small" color={colors.accent} /> : null}
+      />
+      <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent }]} onPress={() => router.back()}>
+        <Ionicons name="arrow-back-outline" size={18} color={colors.buttonText} style={{ marginRight: 4 }} />
+        <Text style={[styles.buttonText, { color: colors.buttonText }]}>Volver</Text>
       </TouchableOpacity>
     </View>
   );
@@ -40,43 +90,41 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#ECEFF4',
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
-  darkBg: {
-    backgroundColor: '#232936',
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 30,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#2E3440',
     textAlign: 'center',
-  },
-  darkText: {
-    color: '#fff',
   },
   empty: {
     textAlign: 'center',
-    color: '#888',
     marginTop: 32,
-  },
-  loadingIndicator: {
-    marginTop: 32,
+    fontSize: 16,
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: '#5E81AC',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 14,
     borderRadius: 12,
     marginTop: 18,
+    marginBottom: 18,
   },
   buttonText: {
-    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
 });
-

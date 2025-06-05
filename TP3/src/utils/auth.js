@@ -1,98 +1,69 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { Alert } from 'react-native';
 import { auth } from '../../firebaseConfig';
 
 export const validateLoginForm = (email, password, setErrors) => {
   const newErrors = {};
-
-  if (!email) {
-    newErrors.email = 'El email es obligatorio';
-  } else if (!/\S+@\S+\.\S+/.test(email)) {
-    newErrors.email = 'Por favor, ingresa un email válido';
-  }
-
-  if (!password) {
-    newErrors.password = 'La contraseña es obligatoria';
-  }
-
+  if (!email) newErrors.email = 'El email es obligatorio';
+  else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Por favor, ingresa un email válido';
+  if (!password) newErrors.password = 'La contraseña es obligatoria';
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
 
 export const validateRegisterForm = (email, password, confirmPassword, setErrors) => {
   const newErrors = {};
-
-  if (!email) {
-    newErrors.email = 'El email es obligatorio';
-  } else if (!/\S+@\S+\.\S+/.test(email)) {
-    newErrors.email = 'Por favor, ingresa un email válido';
-  }
-
-  if (!password) {
-    newErrors.password = 'La contraseña es obligatoria';
-  } else if (password.length < 6) {
-    newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-  } else if (!/[A-Z]/.test(password)) {
-    newErrors.password = 'La contraseña debe contener al menos una letra mayúscula';
-  } else if (!/[0-9]/.test(password)) {
-    newErrors.password = 'La contraseña debe contener al menos un número';
-  }
-
-  if (!confirmPassword) {
-    newErrors.confirmPassword = 'Por favor, confirma tu contraseña';
-  } else if (password !== confirmPassword) {
-    newErrors.confirmPassword = 'Las contraseñas no coinciden';
-  }
-
+  if (!email) newErrors.email = 'El email es obligatorio';
+  else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Por favor, ingresa un email válido';
+  if (!password) newErrors.password = 'La contraseña es obligatoria';
+  else if (password.length < 6) newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+  if (!confirmPassword) newErrors.confirmPassword = 'Por favor, confirma tu contraseña';
+  else if (password !== confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
 
 export const handleLogin = async (email, password, setErrors, setLoading, router) => {
   if (!validateLoginForm(email, password, setErrors)) {
-    const errorMessage = Object.values(setErrors).join('\n');
-    Alert.alert('Error de Validación', errorMessage);
+    const currentErrors = {};
+    if (!email) currentErrors.email = 'El email es obligatorio';
+    else if (!/\S+@\S+\.\S+/.test(email)) currentErrors.email = 'Por favor, ingresa un email válido';
+    if (!password) currentErrors.password = 'La contraseña es obligatoria';
+    setErrors(currentErrors);
+    if (Object.values(currentErrors).length > 0) {
+        Alert.alert('Error de Validación', Object.values(currentErrors).filter(Boolean).join('\n'));
+    }
     return;
   }
-
+  setLoading(true);
   try {
-    setLoading(true);
     await signInWithEmailAndPassword(auth, email.trim(), password);
     setErrors({});
-    router.push('/home');
   } catch (error) {
-    let errorMessage = 'Ocurrió un error durante el inicio de sesión';
+    const newErrors = {};
+    let alertMessage = 'Ocurrió un error durante el inicio de sesión. Intenta de nuevo.';
     switch (error.code) {
       case 'auth/invalid-email':
-        errorMessage = 'El email no es válido';
-        setErrors({ email: errorMessage });
-        break;
-      case 'auth/user-disabled':
-        errorMessage = 'Esta cuenta ha sido deshabilitada';
-        break;
       case 'auth/user-not-found':
-        errorMessage = 'No existe una cuenta con este email';
-        setErrors({ email: errorMessage });
+        newErrors.email = 'El email ingresado no es válido o no está registrado.';
+        alertMessage = newErrors.email;
         break;
       case 'auth/wrong-password':
-        errorMessage = 'Contraseña incorrecta';
-        setErrors({ password: errorMessage });
-        break;
       case 'auth/invalid-credential':
-        errorMessage = 'Email o contraseña incorrectos';
-        setErrors({ 
-          email: errorMessage,
-          password: errorMessage 
-        });
+        newErrors.password = 'La contraseña es incorrecta.';
+        alertMessage = newErrors.password;
+        break;
+      case 'auth/user-disabled':
+        alertMessage = 'Esta cuenta ha sido deshabilitada.';
         break;
       case 'auth/too-many-requests':
-        errorMessage = 'Demasiados intentos fallidos. Por favor, intenta más tarde';
+        alertMessage = 'Demasiados intentos fallidos. Por favor, intenta más tarde o restablece tu contraseña.';
         break;
       default:
-        console.error('Error de Firebase:', error);
-        errorMessage = 'Error al iniciar sesión. Por favor, intenta de nuevo';
+        newErrors.general = alertMessage;
     }
-    Alert.alert('Error', errorMessage);
+    setErrors(newErrors);
+    Alert.alert('Error de Inicio de Sesión', alertMessage);
   } finally {
     setLoading(false);
   }
@@ -100,38 +71,59 @@ export const handleLogin = async (email, password, setErrors, setLoading, router
 
 export const handleRegister = async (email, password, confirmPassword, setErrors, setLoading, router) => {
   if (!validateRegisterForm(email, password, confirmPassword, setErrors)) {
-    const errorMessage = Object.values(setErrors).join('\n');
-    Alert.alert('Error de Validación', errorMessage);
+    const currentErrors = {};
+    if (!email) currentErrors.email = 'El email es obligatorio';
+    else if (!/\S+@\S+\.\S+/.test(email)) currentErrors.email = 'Por favor, ingresa un email válido';
+    if (!password) currentErrors.password = 'La contraseña es obligatoria';
+    else if (password.length < 6) currentErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    if (!confirmPassword) currentErrors.confirmPassword = 'Por favor, confirma tu contraseña';
+    else if (password !== confirmPassword) currentErrors.confirmPassword = 'Las contraseñas no coinciden';
+    setErrors(currentErrors);
+    if (Object.values(currentErrors).length > 0) {
+        Alert.alert('Error de Validación', Object.values(currentErrors).filter(Boolean).join('\n'));
+    }
     return;
   }
-
+  setLoading(true);
   try {
-    setLoading(true);
     await createUserWithEmailAndPassword(auth, email.trim(), password);
-    router.push('/login');
+    setErrors({});
+    Alert.alert('Registro Exitoso', 'Tu cuenta ha sido creada.', [
+      { text: 'OK', onPress: () => router.replace('/login') }
+    ]);
   } catch (error) {
-    let errorMessage = 'Ocurrió un error durante el registro';
+    const newErrors = {};
+    let alertMessage = 'Ocurrió un error durante el registro. Intenta de nuevo.';
     switch (error.code) {
       case 'auth/email-already-in-use':
-        errorMessage = 'Este email ya está registrado';
-        setErrors({ email: errorMessage });
+        newErrors.email = 'Este email ya está registrado.';
+        alertMessage = newErrors.email;
         break;
       case 'auth/invalid-email':
-        errorMessage = 'El email no es válido';
-        setErrors({ email: errorMessage });
+        newErrors.email = 'El email no es válido.';
+        alertMessage = newErrors.email;
         break;
       case 'auth/operation-not-allowed':
-        errorMessage = 'El registro con email y contraseña no está habilitado';
+        alertMessage = 'El registro con email y contraseña no está habilitado.';
         break;
       case 'auth/weak-password':
-        errorMessage = 'La contraseña es muy débil. Debe tener al menos 6 caracteres';
-        setErrors({ password: errorMessage });
+        newErrors.password = 'La contraseña es muy débil.';
+        alertMessage = newErrors.password;
         break;
       default:
-        console.error('Error de Firebase:', error);
+        newErrors.general = alertMessage;
     }
-    Alert.alert('Error', errorMessage);
+    setErrors(newErrors);
+    Alert.alert('Error de Registro', alertMessage);
   } finally {
     setLoading(false);
+  }
+};
+
+export const handleLogout = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    Alert.alert('Error', 'No se pudo cerrar sesión.');
   }
 };

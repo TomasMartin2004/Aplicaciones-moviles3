@@ -1,11 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import uuid from 'react-native-uuid'; // Make sure you have installed react-native-uuid: npm install react-native-uuid or yarn add react-native-uuid
-import { storage } from '../../firebaseConfig';
 import CustomInput from '../components/CustomInput';
 import MoodSelector from '../components/MoodSelector';
 import PhotoPicker from '../components/PhotoPicker';
@@ -16,41 +13,20 @@ export default function NewEntryScreen() {
   const [note, setNote] = useState('');
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { addEntry, theme, currentUser } = useWellness();
+  const { addEntry, theme } = useWellness();
   const router = useRouter();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'Images',
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
     });
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  const uploadImage = async (uri) => {
-    if (!uri || !currentUser) return null; // Don't upload if no image or no user
-
-    setLoading(true);
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
-    const filename = `wellness_images/${currentUser.uid}/${uuid.v4()}`; // Unique filename per user
-    const storageRef = ref(storage, filename);
-
-    try {
-      await uploadBytes(storageRef, blob);
-      const downloadURL = await getDownloadURL(storageRef);
-      setLoading(false);
-      return downloadURL;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setLoading(false);
-      Alert.alert('Error', 'No se pudo subir la imagen.');
-      return null;
+      if (result.assets && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+      }
     }
   };
 
@@ -59,27 +35,16 @@ export default function NewEntryScreen() {
       Alert.alert('Selecciona tu estado de ánimo');
       return;
     }
-
-    setLoading(true); // Indicate loading during save
-    let imageUrl = null;
-    if (image) {
-       imageUrl = await uploadImage(image);
-       if (imageUrl === null) { // If image upload failed, stop the process
-         setLoading(false);
-         return;
-       }
+    setLoading(true);
+    const entry = { mood, note, image };
+    try {
+      await addEntry(entry);
+      router.replace('/home'); 
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar la entrada. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
-
-    const entry = {
-      mood,
-      note,
-      image: imageUrl, // Save the download URL or null
-      // The timestamp will be added in the addEntry function in context
-    };
-
-    await addEntry(entry);
-    setLoading(false);
-    router.replace('/home');
   };
 
   return (
@@ -87,7 +52,7 @@ export default function NewEntryScreen() {
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={theme === 'dark' ? '#fff' : '#5E81AC'} />
-          <Text style={[styles.loadingText, theme === 'dark' && styles.darkText]}>Guardando entrada...</Text>
+          <Text style={[styles.loadingText, theme === 'dark' && styles.darkLoadingText]}>Guardando entrada...</Text>
         </View>
       )}
       <View style={{alignItems: 'center', marginBottom: 10}}>
@@ -133,11 +98,6 @@ const styles = StyleSheet.create({
   darkText: {
     color: '#fff',
   },
-  empty: {
-    textAlign: 'center',
-    color: '#888',
-    marginTop: 32,
-  },
   button: {
     backgroundColor: '#5E81AC',
     flexDirection: 'row',
@@ -176,6 +136,9 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#fff',
+    color: '#fff', 
+  },
+  darkLoadingText: { 
+    color: '#ECEFF4', 
   },
 });

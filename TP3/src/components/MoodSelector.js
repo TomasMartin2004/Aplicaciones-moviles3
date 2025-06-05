@@ -38,9 +38,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#f0f0f0',
     marginHorizontal: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    transitionProperty: 'background-color, border-color',
+    transitionDuration: '0.2s',
   },
   selected: {
     backgroundColor: '#5E81AC',
+    borderColor: '#5E81AC',
   },
   emoji: {
     fontSize: 28,
