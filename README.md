@@ -20,7 +20,7 @@ La temática central es el **bienestar emocional y el autocuidado**. La app est�
 - **uuid**: Generación de identificadores únicos para las entradas.
 - **express** (backend): Servidor Node.js para almacenar y servir las entradas.
 - **cors** (backend): Permite el acceso desde la app móvil/web al backend.
-- **firebase** (opcional): Para autenticación y/o almacenamiento en la nube.
+- **firebase** (opcional): Para autenticación.
 
 
 ## Instrucciones para instalar y correr la app
